@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Profile Analyzer</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/style.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-wrapper">
+    <div class="container">
+      
+      <!-- App Header -->
+      <header class="header">
+        <div class="logo-icon">
+          <svg height="36" viewBox="0 0 16 16" width="36" fill="currentColor">
+            <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+          </svg>
+        </div>
+        <h1>GitHub Profile Analyzer</h1>
+        <p class="subtitle">Search, analyze, and compare developer activity, repositories, and stars</p>
+      </header>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="tabs-nav">
+        <button id="tabSingle" class="tab-btn active" onclick="switchMode('single')">Profile Analysis</button>
+        <button id="tabCompare" class="tab-btn" onclick="switchMode('compare')">Compare Developers</button>
+      </div>
+
+      <!-- Single Search Section -->
+      <section id="singleSearchSection" class="search-container">
+        <div class="search-box">
+          <div class="input-group">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="username" placeholder="Enter GitHub username (e.g. apurbahalderwork)" autocomplete="off" />
+          </div>
+          <button id="analyzeBtn" class="primary-btn" onclick="getProfile()">
+            <span id="btnText">Analyze</span>
+            <span class="spinner" id="btnSpinner" style="display: none;"></span>
+          </button>
+        </div>
+        <div class="quick-tags">
+          <span>Popular:</span>
+          <button class="tag-btn" onclick="searchUser('apurbahalderwork')">apurbahalderwork</button>
+          <button class="tag-btn" onclick="searchUser('torvalds')">torvalds</button>
+          <button class="tag-btn" onclick="searchUser('gaearon')">gaearon</button>
+          <button class="tag-btn" onclick="searchUser('shadcn')">shadcn</button>
+        </div>
+      </section>
+
+      <!-- Compare Search Section -->
+      <section id="compareSearchSection" class="search-container" style="display: none;">
+        <div class="search-box">
+          <div class="compare-inputs">
+            <div class="input-group">
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="compareUser1" placeholder="First developer (e.g. apurbahalderwork)" autocomplete="off" />
+            </div>
+            <div class="input-group">
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="compareUser2" placeholder="Second developer (e.g. torvalds)" autocomplete="off" />
+            </div>
+          </div>
+          <button id="compareBtn" class="primary-btn" onclick="compareDevelopers()">
+            <span id="compareBtnText">Compare</span>
+            <span class="spinner" id="compareBtnSpinner" style="display: none;"></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Alert / Status message -->
+      <div id="statusMessage" class="status-msg"></div>
+
+      <!-- ================= SINGLE USER VIEW ================= -->
+      <div id="singleUserContainer">
+        <!-- Profile Overview Card -->
+        <div id="profile" class="profile-card" style="display: none;"></div>
+
+        <!-- Charts Section -->
+        <div id="chartsWrapper" class="charts-grid two-col" style="display: none; margin-top: 24px;">
+          
+          <!-- Stars Bar Chart -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Top Repositories by Stars</h3>
+              <span class="chart-badge" id="repoCountBadge">0 Repos</span>
+            </div>
+            <div class="canvas-wrapper">
+              <canvas id="starsChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Languages Breakdown Chart -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Language Breakdown</h3>
+              <span class="chart-badge">Most Used</span>
+            </div>
+            <div class="canvas-wrapper">
+              <canvas id="languagesChart"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Activity Feed Timeline -->
+        <div id="activityCard" class="activity-card" style="display: none; margin-top: 24px;">
+          <h3 class="section-title">
+            <span>⚡ Recent Developer Activity</span>
+          </h3>
+          <div id="activityList" class="activity-list"></div>
+        </div>
+
+        <!-- Repositories Grid Section with Search & Filter Controls -->
+        <div id="reposSection" class="repos-section" style="display: none; margin-top: 24px;">
+          <div class="repos-header-controls">
+            <h3 class="section-title">
+              <span>📂 Featured Repositories</span>
+            </h3>
+            <div class="repos-filter-bar">
+              <input type="text" id="repoSearchInput" class="filter-input" placeholder="Filter repos by name..." oninput="filterRepositories()" />
+              <select id="repoLanguageSelect" class="filter-select" onchange="filterRepositories()">
+                <option value="ALL">All Languages</option>
+              </select>
+              <select id="repoSortSelect" class="filter-select" onchange="filterRepositories()">
+                <option value="stars">Most Stars</option>
+                <option value="forks">Most Forks</option>
+                <option value="updated">Recently Updated</option>
+                <option value="name">Alphabetical</option>
+              </select>
+            </div>
+          </div>
+          <div id="reposGrid" class="repos-grid"></div>
+        </div>
+      </div>
+
+      <!-- ================= COMPARE VIEW ================= -->
+      <div id="compareContainer" style="display: none; flex-direction: column; gap: 24px;">
+        <div id="compareCardsGrid" class="compare-grid"></div>
+        
+        <div id="compareTableCard" class="compare-table-card">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th id="compHeadUser1">User 1</th>
+                <th>Metric</th>
+                <th id="compHeadUser2">User 2</th>
+              </tr>
+            </thead>
+            <tbody id="compareTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Head-to-Head Comparison</h3>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="compareChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal for Markdown badge -->
+  <div id="badgeModal" class="modal-overlay" onclick="closeBadgeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>GitHub Profile Badge</h3>
+        <button class="modal-close" onclick="closeBadgeModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 12px;">Copy this Markdown snippet and paste it into your GitHub Profile <code>README.md</code>:</p>
+      <textarea id="badgeMarkdownText" class="modal-textarea" readonly></textarea>
+      <button class="primary-btn" onclick="copyBadgeMarkdown()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
